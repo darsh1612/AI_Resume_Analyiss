@@ -1,0 +1,16 @@
+{
+  "name": "Darsh Gupta",
+  "skills": ["Python","C","C++","Java","JavaScript","SQL","Natural Language Processing","Text Preprocessing","Sentiment Analysis","Summarization","Word2Vec","OpenAI API","OpenAI Whisper","Librosa","OpenCV","Data Structures & Algorithms","Operating Systems","OOP","Computer Organization","Probability & Statistics","Git","GitHub","Supabase","Streamlit","FastAPI","Hugging Face","LangChain","Selenium"],
+  "projects": [
+    {"name":"Automated Lecture Speech Analysis (MIDAS)","tech":["OpenAI Whisper"],"description":"Developed an AI system to evaluate instructors' verbal communication quality from recorded lecture videos."},
+    {"name":"AI Movie Review Analyzer","tech":["Python","Scikit-learn","NLP"],"description":"Built a sentiment analysis web app that scrapes and analyzes 100+ IMDb reviews per query using Word2Vec + Scikit-learn."},
+    {"name":"TUFF.AI – GenAI Fashion Recommendation System","tech":["YOLOv8","MediaPipe","CNNs"],"description":"Built an AI-based fashion assistant using YOLOv8, MediaPipe, and CNNs for visual feature extraction, skin tone detection, and color analysis."},
+    {"name":"Delivery Verification Platform (MSTELECOM)","tech":["React","Supabase","SQL"],"description":"Built a production-grade OTP-based delivery verification system used by field agents to close orders securely."}
+  ],
+  "experience": [
+    {"company":"MS Telecom","position":"SDE INTERN","duration":"May 2025 – Jun 2025","description":"Built a secure OTP-based delivery verification system, designed and implemented the frontend UI using React and CSS, and integrated the frontend with a Supabase-backed SQL database."},
+    {"company":"MIDAS: Multimodal Digital Media Analysis Lab","position":"Undergraduate AI Research Assistant","duration":"Aug 2025 – Dec 2025","description":"Engineered web scraping pipelines to collect 1,000+ hours of multilingual lecture videos, transcripts, and subtitles, and built automated data-cleaning, normalization, and dataset pipelines for downstream speech and NLP models."}
+  ]
+}
+
+
