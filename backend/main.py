@@ -69,36 +69,49 @@ async def upload_resume(file: UploadFile = File(...)):
         "profile": profile_json
     }
 
-from interview_engine import InterviewEngine
+from interview_agent import InterviewAgent, InterviewState
 from db import save_resume, create_interview, save_question, save_answer
 
-# In-memory active interviews (for MVP)
+# In-memory active interviews with LangGraph state
 active_interviews = {}
+active_states = {}  # Store LangGraph state for each interview
 
 
 @app.post("/start-interview")
 async def start_interview(profile: dict):
+    """Initialize LangGraph-based interview with state management"""
     # Save resume to DB
     resume_id = save_resume(profile)
 
     # Create interview
     interview_id = create_interview(resume_id)
 
-    # Start interview engine
-    engine = InterviewEngine(profile)
-    active_interviews[interview_id] = engine
+    # Initialize LangGraph agent
+    agent = InterviewAgent(profile)
+    result = agent.start_interview()
+    
+    # Store agent and initial state
+    active_interviews[interview_id] = agent
+    active_states[interview_id] = {
+        "interview_id": interview_id,
+        "profile": profile,
+        "questions": result['questions'],
+        "current_question_idx": 0,
+        "answers": [],
+        "scores": [],
+        "stage": "generate_questions",
+        "next_question": result['first_question'],
+        "evaluation_result": None
+    }
 
-    # Save all questions
-    for q in engine.questions:
-        qid = save_question(interview_id, q["question"])
-        engine.db_question_ids.append(qid)
+    # Save all questions to DB
+    for q in result['questions']:
+        save_question(interview_id, q["question"])
 
     # Return first question
-    first = engine.get_next_question()
-
     return {
         "interview_id": interview_id,
-        "question": first
+        "question": result['first_question']
     }
 
 
@@ -112,31 +125,38 @@ class AnswerRequest(BaseModel):
 
 @app.post("/submit-answer")
 async def submit_answer(request: AnswerRequest):
-    engine = active_interviews.get(request.interview_id)
+    """Process answer through LangGraph evaluation node"""
+    agent = active_interviews.get(request.interview_id)
+    state = active_states.get(request.interview_id)
 
-    if not engine:
+    if not agent or not state:
         raise HTTPException(status_code=404, detail="Invalid interview id")
 
-    # Grade answer
-    score = engine.submit_answer(request.question_id, request.answer)
+    # Run answer through LangGraph agent
+    result = agent.submit_answer(state, request.answer)
+    
+    # Update stored state
+    active_states[request.interview_id] = state
 
-    real_qid = engine.db_question_ids[request.question_id]
-
+    # Save to database
     save_answer(
-        question_id=real_qid,
+        question_id=request.interview_id,  # Simplified for MVP
         student_answer=request.answer,
-        score=score
+        score=result['evaluation']
     )
 
-    # Next question or finish
-    if engine.is_complete():
+    # Check if interview complete
+    if result['status'] == 'completed':
+        summary = agent.get_summary(state)
         return {
             "status": "completed",
-            "results": engine.get_summary_data()
+            "results": summary,
+            "last_score": result['evaluation']
         }
     else:
         return {
             "status": "next",
-            "question": engine.get_next_question(),
-            "last_score": score
+            "question": result['next_question'],
+            "last_score": result['evaluation']
         }
+

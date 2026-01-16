@@ -5,3 +5,6 @@ pdfplumber
 python-dotenv
 requests
 supabase
+langgraph
+langchain-core
+langchain-groq
